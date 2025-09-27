@@ -1,9 +1,16 @@
 {
   "name": "Hackathon Extension",
-  "description": "Base extension for our hackathon project",
+  "description": "Summarizes highlighted text with a summary, bullet points, and text-to-speech.",
   "version": "1.0",
   "manifest_version": 3,
   "action": {
-    "default_popup": "hello.html"
-  }
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ]
 }
+
+
+  
