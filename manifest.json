@@ -1,6 +1,6 @@
 {
-  "name": "Summanote Extension DEBUG",
-  "description": "AI-powered text summarization extension - DEBUG VERSION",
+  "name": "Summanote Extension",
+  "description": "AI-powered text summarization extension",
   "version": "1.0",
   "manifest_version": 3,
 
@@ -11,7 +11,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["extension/content/debug-content.js"],
+      "js": ["extension/content/content.js"],
       "run_at": "document_end"
     }
   ],
