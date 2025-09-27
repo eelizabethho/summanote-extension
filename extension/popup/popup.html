@@ -2,44 +2,34 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Summanote Extension</title>
+  <title>Text Summarizer</title>
   <link rel="stylesheet" href="../assets/popup.css">
 </head>
 <body>
   <div class="card">
     <div class="header">
-      <h1>🤖 Summanote</h1>
+      <img src="../images/SummaNote_logo.png" alt="SummaNote Logo" class="logo">
+      <button id="ttsBtn">🔊 Speak</button>
     </div>
 
     <div class="content">
-      <section>
-        <h2>How to Use</h2>
-        <ol style="font-size: 14px; line-height: 1.5;">
-          <li>Select any text on any webpage</li>
-          <li>Click the blue "📝 Summarize" button</li>
-          <li>Get simple, easy-to-understand summaries instantly!</li>
+      <section class="summary-header">
+        <h2>
+          Summary
+        </h2>
+        <p id="summaryText">Your summary will appear here...</p>
+      </section>
+
+      <section class="instructions">
+        <h3>How to Use:</h3>
+        <ol>
+          <li>Select any text on a webpage</li>
+          <li>Click the "Summarize" button that appears</li>
+          <li>View your AI-generated summary here</li>
         </ol>
-      </section>
-
-      <section>
-        <h2>Features</h2>
-        <ul style="font-size: 14px; line-height: 1.5;">
-          <li>📝 Smart summarization</li>
-          <li>✅ Works on any webpage</li>
-          <li>✅ No setup required</li>
-          <li>✅ Simple and easy to understand</li>
-          <li>✅ Free to use</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>About</h2>
-        <p style="font-size: 14px; line-height: 1.5;">
-          Summanote helps you quickly understand long texts by creating simple, 
-          easy-to-read summaries. Just select any text and click summarize!
-        </p>
       </section>
     </div>
   </div>
+  <script src="popup.js"></script>
 </body>
 </html>
