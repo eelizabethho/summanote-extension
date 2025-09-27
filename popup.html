@@ -13,21 +13,39 @@
     </div>
 
     <div class="content">
+      <!-- Loading indicator -->
+      <div id="loadingIndicator" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>AI is summarizing your text...</p>
+      </div>
+
+      <!-- Summary section -->
       <section class="summary-header">
         <h2>
-          Summary
+          <span id="summaryTitle">Summary</span>
+          <span id="aiBadge" class="ai-badge" style="display: none;">v1.0</span>
         </h2>
-        <p id="summaryText">Your summary will appear here...</p>
+        <div id="summaryContainer" class="summary-container">
+          <p id="summaryText" class="summary-text">Your summary will appear here...</p>
+        </div>
       </section>
 
+      <!-- Bullet points section -->
       <section>
-        <h2>Bullet Points</h2>
-        <ul id="bulletList">
-          <li>Key point 1</li>
-          <li>Key point 2</li>
-          <li>Key point 3</li>
-        </ul>
+        <h2>Key Points</h2>
+        <div id="bulletContainer" class="bullet-container">
+          <ul id="bulletList" class="bullet-list">
+            <li>Key point 1</li>
+            <li>Key point 2</li>
+            <li>Key point 3</li>
+          </ul>
+        </div>
       </section>
+
+      <!-- Status message -->
+      <div id="statusMessage" class="status-message" style="display: none;">
+        <p id="statusText"></p>
+      </div>
     </div>
   </div>
   <script src="popup.js"></script>

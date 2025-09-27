@@ -50,4 +50,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     getAndPlayAudio(message.text);
     return true; 
   }
+  
+  if (message.action === "updateSummary") {
+    console.log("📝 Received summary update:", message);
+    // Store the summary data for the popup
+    chrome.storage.local.set({
+      currentSummary: {
+        summary: message.summary,
+        bulletPoints: message.bulletPoints || []
+      }
+    });
+    console.log("💾 Summary data stored for popup");
+    return true;
+  }
 });

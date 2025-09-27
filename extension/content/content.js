@@ -1,144 +1,354 @@
 console.log("SUMMANOTE: Content script loaded!");
 
-// Simple function to remove existing tooltip
-function removeTooltip() {
-    const existing = document.getElementById('summarize-tooltip');
-    if (existing) {
-        existing.remove();
+// Function to show "Open Extension" popup
+function showOpenExtensionPopup() {
+    // Remove any existing popup
+    const existingPopup = document.getElementById('summanote-open-popup');
+    if (existingPopup) {
+        existingPopup.remove();
     }
+
+    const popup = document.createElement('div');
+    popup.id = 'summanote-open-popup';
+    popup.innerHTML = `
+        <div class="open-extension-card">
+            <div class="open-extension-content">
+                <h3>AI Processing...</h3>
+                <p>Your text is being summarized by AI. Click the SummaNote extension icon in your browser toolbar to view the results!</p>
+                <button id="summanote-close-popup" class="close-btn">Got it!</button>
+            </div>
+        </div>
+    `;
+    
+    // Add CSS styles
+    const style = document.createElement('style');
+    style.textContent = `
+        #summanote-open-popup {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            z-index: 999999 !important;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        }
+        
+        .open-extension-card {
+            background: #f9f9ff !important;
+            border-radius: 12px !important;
+            border: 2px solid #4b0082 !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+            padding: 24px !important;
+            max-width: 300px !important;
+            text-align: center !important;
+        }
+        
+        .open-extension-content h3 {
+            color: #4b0082 !important;
+            font-size: 18px !important;
+            margin: 0 0 12px 0 !important;
+            font-weight: 600 !important;
+        }
+        
+        .open-extension-content p {
+            color: #333 !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            margin: 0 0 16px 0 !important;
+        }
+        
+        .close-btn {
+            background: linear-gradient(135deg, #4b0082 0%, #4f46e5 100%) !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .close-btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(75, 0, 130, 0.3) !important;
+        }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(popup);
+    console.log("SUMMANOTE: Open extension popup created");
+
+    // Add close functionality
+    const closeBtn = document.getElementById('summanote-close-popup');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            popup.remove();
+            console.log("SUMMANOTE: Open extension popup closed");
+        });
+    }
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (popup.parentNode) {
+            popup.remove();
+            console.log("SUMMANOTE: Open extension popup auto-closed");
+        }
+    }, 5000);
+
+    return popup;
 }
 
-// Simple function to show tooltip
-function showTooltip(x, y, text) {
-    console.log("SUMMANOTE: Showing tooltip at", x, y);
+// Function to show "Summarization Ready" popup
+function showSummarizationReadyPopup() {
+    // Remove any existing popup
+    const existingPopup = document.getElementById('summanote-ready-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
     
-    // Remove any existing tooltip
-    removeTooltip();
+    const popup = document.createElement('div');
+    popup.id = 'summanote-ready-popup';
+    popup.innerHTML = `
+        <div class="ready-extension-card">
+            <div class="ready-extension-content">
+                <h3>Summarization Ready!</h3>
+                <p>Your AI summary is complete! Click the SummaNote extension icon in your browser toolbar to view the results.</p>
+                <button id="summanote-close-ready-popup" class="close-btn">Got it!</button>
+            </div>
+        </div>
+    `;
     
-    // Create the button
-    const button = document.createElement('div');
-    button.id = 'summarize-tooltip';
-    button.textContent = '📝 Summarize';
+    // Add CSS styles for ready popup
+    const style = document.createElement('style');
+    style.textContent = `
+        #summanote-ready-popup {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            z-index: 999999 !important;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        }
+        
+        .ready-extension-card {
+            background: #f0f8ff !important;
+            border-radius: 12px !important;
+            border: 2px solid #4f46e5 !important;
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3) !important;
+            padding: 24px !important;
+            max-width: 300px !important;
+            text-align: center !important;
+        }
+        
+        .ready-extension-content h3 {
+            color: #4f46e5 !important;
+            font-size: 18px !important;
+            margin: 0 0 12px 0 !important;
+            font-weight: 600 !important;
+        }
+        
+        .ready-extension-content p {
+            color: #333 !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            margin: 0 0 16px 0 !important;
+        }
+        
+        .close-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #4b0082 100%) !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .close-btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+        }
+    `;
+
+    document.head.appendChild(style);
+    document.body.appendChild(popup);
+    console.log("SUMMANOTE: Summarization ready popup created");
+
+    // Add close functionality
+    const closeBtn = document.getElementById('summanote-close-ready-popup');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            popup.remove();
+            console.log("SUMMANOTE: Summarization ready popup closed");
+        });
+    }
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (popup.parentNode) {
+            popup.remove();
+            console.log("SUMMANOTE: Summarization ready popup auto-closed");
+        }
+    }, 5000);
+
+    return popup;
+}
+
+// Function to create and show the summarize button
+function createSummarizeButton(selection) {
+    console.log("SUMMANOTE: createSummarizeButton called");
     
-    // Set styles directly
-    button.style.position = 'fixed';
-    button.style.left = x + 'px';
-    button.style.top = (y - 50) + 'px';
-    button.style.backgroundColor = '#4f46e5'; // Nice blue color
-    button.style.color = 'white';
-    button.style.padding = '10px 15px';
-    button.style.borderRadius = '6px';
-    button.style.cursor = 'pointer';
-    button.style.zIndex = '999999';
-    button.style.fontSize = '14px';
-    button.style.fontWeight = '500';
-    button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-    button.style.border = 'none';
-    button.style.userSelect = 'none';
-    button.style.pointerEvents = 'auto';
-    button.style.transition = 'all 0.2s ease';
+    // Remove any existing button
+    const existingBtn = document.getElementById('summanote-summarize-btn');
+    if (existingBtn) {
+        console.log("SUMMANOTE: Removing existing button");
+        existingBtn.remove();
+    }
+
+    const button = document.createElement('button');
+    button.id = 'summanote-summarize-btn';
+    button.innerHTML = '📝 Summarize';
+    button.className = 'summanote-button';
     
+    console.log("SUMMANOTE: Button created with ID:", button.id);
+
+    // Add CSS for the button
+    const style = document.createElement('style');
+    style.textContent = `
+        .summanote-button {
+            position: fixed !important;
+            background: linear-gradient(135deg, #4b0082 0%, #4f46e5 100%) !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 6px !important;
+            cursor: pointer !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            box-shadow: 0 4px 12px rgba(75, 0, 130, 0.3) !important;
+            z-index: 999998 !important;
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .summanote-button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 16px rgba(75, 0, 130, 0.4) !important;
+        }
+    `;
+
+    document.head.appendChild(style);
+
+    // Position the button above the selection
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    
+    const leftPos = rect.left + window.scrollX;
+    const topPos = rect.top + window.scrollY - 40;
+    
+    button.style.left = leftPos + 'px';
+    button.style.top = topPos + 'px';
+    
+    console.log("SUMMANOTE: Button positioned at:", leftPos, topPos);
+
+    document.body.appendChild(button);
+    console.log("SUMMANOTE: Button added to DOM");
+
     // Add click handler
-    button.onclick = function(e) {
+    button.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        console.log("SUMMANOTE: Button clicked for text:", text);
+        console.log("SUMMANOTE: Summarize button clicked - event fired!");
         
-        // Remove button first
-        removeTooltip();
+        const selectedText = selection.toString().trim();
+        console.log("SUMMANOTE: Selected text length:", selectedText.length);
+        console.log("SUMMANOTE: Selected text preview:", selectedText.substring(0, 100) + "...");
         
-        // Send message to background script for summarization
-        chrome.runtime.sendMessage({
-            action: 'summarize',
-            text: text
-        }, function(response) {
-            console.log("SUMMANOTE: Response received:", response);
-            
-            if (response && response.success) {
-                console.log("SUMMANOTE: Summary received:", response.summary);
-                
-                // Create a nice popup to show the summary
-                const summaryPopup = document.createElement('div');
-                summaryPopup.id = 'summary-popup';
-                summaryPopup.innerHTML = `
-                    <div style="
-                        position: fixed;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        background: white;
-                        border: 2px solid #4b0082;
-                        border-radius: 12px;
-                        padding: 20px;
-                        max-width: 500px;
-                        max-height: 400px;
-                        overflow-y: auto;
-                        z-index: 1000000;
-                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-                        font-family: Arial, sans-serif;
-                    ">
-                        <h3 style="margin: 0 0 10px 0; color: #4b0082; text-align: center;">📝 Summary</h3>
-                        <p style="margin: 0; line-height: 1.6; color: #333; font-size: 14px;">${response.summary}</p>
-                        <button id="close-summary" style="
-                            position: absolute;
-                            top: 10px;
-                            right: 10px;
-                            background: #ff4757;
-                            color: white;
-                            border: none;
-                            border-radius: 50%;
-                            width: 24px;
-                            height: 24px;
-                            cursor: pointer;
-                            font-size: 12px;
-                        ">×</button>
-                    </div>
-                `;
-                
-                document.body.appendChild(summaryPopup);
-                
-                // Add close functionality
-                document.getElementById('close-summary').addEventListener('click', function() {
-                    summaryPopup.remove();
-                });
-                
-                // Close on outside click
-                summaryPopup.addEventListener('click', function(e) {
-                    if (e.target === summaryPopup) {
-                        summaryPopup.remove();
-                    }
-                });
-            } else {
-                console.error("SUMMANOTE: Failed to get summary");
-                alert("Sorry, couldn't generate a summary right now. Please try again.");
-            }
-        });
-    };
-    
-    // Add to page
-    document.body.appendChild(button);
-    console.log("SUMMANOTE: Button added to page");
+        // Show immediate feedback
+        showOpenExtensionPopup();
+        
+        // Send the text to background script for processing
+        try {
+            chrome.runtime.sendMessage({
+                action: "summarize",
+                text: selectedText
+            }, function(response) {
+                console.log("SUMMANOTE: Received response from background:", response);
+                if (chrome.runtime.lastError) {
+                    console.error("SUMMANOTE: Error sending message:", chrome.runtime.lastError);
+                } else if (response && response.success) {
+                    console.log("SUMMANOTE: Summary completed successfully");
+                    showSummarizationReadyPopup();
+                } else {
+                    console.log("SUMMANOTE: Summary processing started");
+                }
+            });
+        } catch (error) {
+            console.error("SUMMANOTE: Error in sendMessage:", error);
+        }
+        
+        // Remove the button
+        button.remove();
+    });
+
+    // Auto-remove button after 3 seconds
+    setTimeout(() => {
+        if (button.parentNode) {
+            button.remove();
+        }
+    }, 3000);
+
+    return button;
 }
 
-// Listen for text selection
-document.addEventListener('mouseup', function(e) {
-    const selection = window.getSelection();
-    const text = selection.toString().trim();
-    
-    if (text.length > 5) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
+// Listen for text selection with multiple events
+document.addEventListener('mouseup', function() {
+    setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
         
-        showTooltip(rect.left + rect.width / 2, rect.top, text);
-    }
+        console.log("SUMMANOTE: Mouse up event - text length:", text.length);
+        
+        if (text.length > 10) {
+            console.log("SUMMANOTE: Text selected:", text);
+            console.log("SUMMANOTE: Creating summarize button...");
+            createSummarizeButton(selection);
+        } else {
+            console.log("SUMMANOTE: Text too short, not creating button");
+        }
+    }, 100); // Small delay to ensure selection is complete
 });
 
-// Listen for selection changes
+// Also listen for selection change
 document.addEventListener('selectionchange', function() {
-    const selection = window.getSelection();
-    const text = selection.toString().trim();
-    
-    if (text.length <= 5) {
-        removeTooltip();
-    }
+    setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+        
+        if (text.length > 10) {
+            console.log("SUMMANOTE: Selection change detected - text length:", text.length);
+            createSummarizeButton(selection);
+        }
+    }, 100);
 });
+
+// Clean up old buttons when selection is cleared
+document.addEventListener('selectionchange', function() {
+    setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+        
+        if (text.length <= 10) {
+            // Remove button if selection is too short
+            const existingBtn = document.getElementById('summanote-summarize-btn');
+            if (existingBtn) {
+                console.log("SUMMANOTE: Removing button - selection too short");
+                existingBtn.remove();
+            }
+        }
+    }, 100);
+});
+
+console.log("SUMMANOTE: Content script setup complete!");

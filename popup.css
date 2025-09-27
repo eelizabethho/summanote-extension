@@ -68,3 +68,120 @@ h2 {
   font-size: 14px;
   margin: 0;
 }
+
+/* Animation for when new summary is received */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+#summaryText {
+  transition: all 0.3s ease;
+}
+
+/* Enhanced styles for AI summary display */
+.summary-container {
+  background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  border-left: 4px solid #4b0082;
+}
+
+.summary-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  margin: 0;
+  text-align: left;
+}
+
+.ai-badge {
+  background: linear-gradient(135deg, #4b0082 0%, #4f46e5 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 8px;
+  display: inline-block;
+}
+
+.bullet-container {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  border-left: 4px solid #4f46e5;
+}
+
+.bullet-list {
+  list-style-position: inside;
+  text-align: left;
+  padding-left: 0;
+  font-size: 14px;
+  margin: 0;
+}
+
+.bullet-list li {
+  margin-bottom: 6px;
+  padding-left: 8px;
+  position: relative;
+}
+
+.bullet-list li::before {
+  content: "•";
+  color: #4b0082;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+
+/* Loading spinner */
+.loading {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%);
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #4b0082;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Status message */
+.status-message {
+  background: #4b0082;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 12px;
+  margin: 8px 0;
+}
+
+.status-message p {
+  margin: 0;
+}
+
+/* Enhanced header */
+.header h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
