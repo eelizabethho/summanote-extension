@@ -17,12 +17,13 @@
   ],
 
   "background": {
-    "service_worker": "extension/background/background.js"
+    "service_worker": "dist/background.js"
   },
 
   "permissions": [
-    "activeTab",
-    "storage"
+    "offscreen", 
+    "storage",   
+    "activeTab"  
   ],
 
   "host_permissions": [
