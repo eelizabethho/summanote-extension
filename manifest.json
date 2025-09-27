@@ -18,21 +18,6 @@
   },
   "permissions": [
     "activeTab",
-<<<<<<< HEAD
-    "storage"
-  ],
-  "host_permissions": [
-    "https://api.openai.com/*"
-  ]
-}
-
-
-
-
-
-
-  
-=======
     "storage",
     "scripting"
   ],
@@ -41,4 +26,3 @@
     "https://api.elevenlabs.io/*"
   ]
 }
->>>>>>> f6a1f6711726e03a0665d80a0ed7b3a2c782b7c5
