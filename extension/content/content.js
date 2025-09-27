@@ -155,10 +155,9 @@ function showSummary(summary, bulletPoints) {
         summaryPopup.remove();
     });
     
-    // Speak button functionality (text-to-speech)
+    // Speak button functionality (Amazon Polly text-to-speech)
     document.getElementById('speak-summary').addEventListener('click', () => {
-        const utterance = new SpeechSynthesisUtterance(summary);
-        speechSynthesis.speak(utterance);
+        speakWithPolly(summary);
     });
     
     // Close on background click
@@ -167,6 +166,82 @@ function showSummary(summary, bulletPoints) {
             summaryPopup.remove();
         }
     });
+}
+
+// Function to speak text using Amazon Polly
+function speakWithPolly(text) {
+    console.log("Starting Polly synthesis for text:", text.substring(0, 100) + "...");
+    
+    // Show loading state
+    const speakButton = document.getElementById('speak-summary');
+    const originalText = speakButton.textContent;
+    speakButton.textContent = '🔄 Synthesizing...';
+    speakButton.disabled = true;
+    
+    // Send text to background script for Polly synthesis
+    chrome.runtime.sendMessage({
+        action: 'synthesize_speech',
+        text: text,
+        voice_id: 'Joanna' // You can make this configurable
+    }, (response) => {
+        console.log("Received response from background script:", response);
+        
+        // Reset button state
+        speakButton.textContent = originalText;
+        speakButton.disabled = false;
+        
+        if (response && response.success) {
+            // Play the audio from Polly
+            playPollyAudio(response.audio_data, response.content_type);
+        } else {
+            console.error("Polly synthesis failed:", response.error);
+            // Check if it's demo mode
+            if (response && response.demo_mode && response.use_browser_tts) {
+                console.log("Demo mode: Using browser TTS");
+                const utterance = new SpeechSynthesisUtterance(response.text || text);
+                speechSynthesis.speak(utterance);
+            } else {
+                // Fall back to browser TTS
+                console.log("Falling back to browser TTS");
+                const utterance = new SpeechSynthesisUtterance(text);
+                speechSynthesis.speak(utterance);
+            }
+        }
+    });
+}
+
+// Function to play Polly audio
+function playPollyAudio(audioData, contentType) {
+    try {
+        // Convert base64 audio data to blob
+        const binaryString = atob(audioData);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        const blob = new Blob([bytes], { type: contentType });
+        const audioUrl = URL.createObjectURL(blob);
+        
+        // Create and play audio
+        const audio = new Audio(audioUrl);
+        audio.play().then(() => {
+            console.log("Polly audio playing successfully");
+        }).catch(error => {
+            console.error("Error playing Polly audio:", error);
+        });
+        
+        // Clean up URL when audio ends
+        audio.addEventListener('ended', () => {
+            URL.revokeObjectURL(audioUrl);
+        });
+        
+    } catch (error) {
+        console.error("Error processing Polly audio:", error);
+        // Fall back to browser TTS
+        const utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.speak(utterance);
+    }
 }
 
 // Function to show error message
