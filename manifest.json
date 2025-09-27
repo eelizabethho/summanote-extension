@@ -1,9 +1,20 @@
 {
-  "name": "Hackathon Extension",
-  "description": "Base extension for our hackathon project",
+  "name": "Summanote Extension",
+  "description": "Extension to highlight and summarize text",
   "version": "1.0",
   "manifest_version": 3,
-  "action": {
-    "default_popup": "hello.html"
-  }
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "permissions": [
+    "activeTab",
+    "storage"
+  ]
 }
