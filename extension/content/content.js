@@ -1,110 +1,144 @@
-// Simple text selection and summarize button
-document.addEventListener('mouseup', function() {
+console.log("SUMMANOTE: Content script loaded!");
+
+// Simple function to remove existing tooltip
+function removeTooltip() {
+    const existing = document.getElementById('summarize-tooltip');
+    if (existing) {
+        existing.remove();
+    }
+}
+
+// Simple function to show tooltip
+function showTooltip(x, y, text) {
+    console.log("SUMMANOTE: Showing tooltip at", x, y);
+    
+    // Remove any existing tooltip
+    removeTooltip();
+    
+    // Create the button
+    const button = document.createElement('div');
+    button.id = 'summarize-tooltip';
+    button.textContent = '📝 Summarize';
+    
+    // Set styles directly
+    button.style.position = 'fixed';
+    button.style.left = x + 'px';
+    button.style.top = (y - 50) + 'px';
+    button.style.backgroundColor = '#4f46e5'; // Nice blue color
+    button.style.color = 'white';
+    button.style.padding = '10px 15px';
+    button.style.borderRadius = '6px';
+    button.style.cursor = 'pointer';
+    button.style.zIndex = '999999';
+    button.style.fontSize = '14px';
+    button.style.fontWeight = '500';
+    button.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+    button.style.border = 'none';
+    button.style.userSelect = 'none';
+    button.style.pointerEvents = 'auto';
+    button.style.transition = 'all 0.2s ease';
+    
+    // Add click handler
+    button.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("SUMMANOTE: Button clicked for text:", text);
+        
+        // Remove button first
+        removeTooltip();
+        
+        // Send message to background script for summarization
+        chrome.runtime.sendMessage({
+            action: 'summarize',
+            text: text
+        }, function(response) {
+            console.log("SUMMANOTE: Response received:", response);
+            
+            if (response && response.success) {
+                console.log("SUMMANOTE: Summary received:", response.summary);
+                
+                // Create a nice popup to show the summary
+                const summaryPopup = document.createElement('div');
+                summaryPopup.id = 'summary-popup';
+                summaryPopup.innerHTML = `
+                    <div style="
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: white;
+                        border: 2px solid #4b0082;
+                        border-radius: 12px;
+                        padding: 20px;
+                        max-width: 500px;
+                        max-height: 400px;
+                        overflow-y: auto;
+                        z-index: 1000000;
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+                        font-family: Arial, sans-serif;
+                    ">
+                        <h3 style="margin: 0 0 10px 0; color: #4b0082; text-align: center;">📝 Summary</h3>
+                        <p style="margin: 0; line-height: 1.6; color: #333; font-size: 14px;">${response.summary}</p>
+                        <button id="close-summary" style="
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            background: #ff4757;
+                            color: white;
+                            border: none;
+                            border-radius: 50%;
+                            width: 24px;
+                            height: 24px;
+                            cursor: pointer;
+                            font-size: 12px;
+                        ">×</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(summaryPopup);
+                
+                // Add close functionality
+                document.getElementById('close-summary').addEventListener('click', function() {
+                    summaryPopup.remove();
+                });
+                
+                // Close on outside click
+                summaryPopup.addEventListener('click', function(e) {
+                    if (e.target === summaryPopup) {
+                        summaryPopup.remove();
+                    }
+                });
+            } else {
+                console.error("SUMMANOTE: Failed to get summary");
+                alert("Sorry, couldn't generate a summary right now. Please try again.");
+            }
+        });
+    };
+    
+    // Add to page
+    document.body.appendChild(button);
+    console.log("SUMMANOTE: Button added to page");
+}
+
+// Listen for text selection
+document.addEventListener('mouseup', function(e) {
     const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
+    const text = selection.toString().trim();
     
-    // Remove old button
-    const oldButton = document.getElementById('summanote-button');
-    if (oldButton) oldButton.remove();
-    
-    // Show button if text is selected
-    if (!selection.isCollapsed && selectedText.length > 0) {
-        showButton(selectedText);
+    if (text.length > 5) {
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        
+        showTooltip(rect.left + rect.width / 2, rect.top, text);
     }
 });
 
-function showButton(selectedText) {
-    // Get position of selected text
+// Listen for selection changes
+document.addEventListener('selectionchange', function() {
     const selection = window.getSelection();
-    const range = selection.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
+    const text = selection.toString().trim();
     
-    // Create button
-    const button = document.createElement('button');
-    button.id = 'summanote-button';
-    button.textContent = '📝 Summarize';
-    button.style.cssText = `
-        position: fixed;
-        top: ${rect.top - 40}px;
-        left: ${rect.left}px;
-        background: rgb(124, 49, 205);
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        cursor: pointer;
-        z-index: 10000;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    `;
-    
-    // Click handler
-    button.addEventListener('click', function() {
-        button.textContent = '⏳ Loading...';
-        button.disabled = true;
-        
-        chrome.runtime.sendMessage({
-            action: 'summarize',
-            text: selectedText
-        }, function(response) {
-            if (response && response.success) {
-                showResults(response.summary, response.bulletPoints);
-            } else {
-                alert('Failed to summarize text');
-            }
-            button.remove();
-        });
-    });
-    
-    document.body.appendChild(button);
-    
-    // Auto-remove after 8 seconds
-    setTimeout(() => {
-        if (button.parentNode) button.remove();
-    }, 8000);
-}
-
-function showResults(summary, bulletPoints) {
-    // Remove old results
-    const old = document.getElementById('summanote-results');
-    if (old) old.remove();
-    
-    const popup = document.createElement('div');
-    popup.id = 'summanote-results';
-    popup.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        border: 2px solid rgb(124, 49, 205);
-        border-radius: 8px;
-        padding: 15px;
-        max-width: 400px;
-        max-height: 70vh;
-        overflow-y: auto;
-        z-index: 10001;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-        font-family: Arial, sans-serif;
-        font-size: 14px;
-    `;
-    
-    popup.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin: 0; color: rgb(124, 49, 205); font-size: 16px;">📝 Summary</h3>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: #ff4444; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 12px;">✕</button>
-        </div>
-        <div style="margin-bottom: 10px;">
-            <strong>Summary:</strong><br>
-            <div style="margin: 5px 0; line-height: 1.4;">${summary}</div>
-        </div>
-        <div>
-            <strong>Key Points:</strong><br>
-            <ul style="margin: 5px 0; padding-left: 15px; line-height: 1.4;">
-                ${bulletPoints.map(point => `<li>${point}</li>`).join('')}
-            </ul>
-        </div>
-    `;
-    
-    document.body.appendChild(popup);
-}
+    if (text.length <= 5) {
+        removeTooltip();
+    }
+});
