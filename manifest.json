@@ -18,26 +18,10 @@
   },
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "scripting"
   ],
   "host_permissions": [
     "https://api.openai.com/*"
   ]
 }
-
-{
-  "name": "SummaNote",
-  "description": "Base extension for our hackathon project",
-  "version": "1.0",
-  "manifest_version": 3,
-  "action": {
-    "default_popup": "popup.html"
-  },
-  "permissions": [
-    "activeTab",
-    "scripting"
-  ]
-}
-
-
-  
