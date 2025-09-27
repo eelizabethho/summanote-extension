@@ -1,4 +1,3 @@
-/* Whole popup background (ombre) */
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
                Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
@@ -9,18 +8,25 @@ body {
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.95); 
+  background: #f9f9ff;
   border-radius: 12px;
   border: 2px solid #4b0082;            
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 15px;
+  padding: 12px;         /* slightly less padding so content sits higher */
   width: 300px;
 }
 
+/* ✅ Header with logo left + button right */
 .header {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
+  justify-content: space-between; /* logo on left, button on right */
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.logo {
+  height: 100px;  /* bigger logo in corner */
+  width: auto;
 }
 
 #ttsBtn {
@@ -51,9 +57,14 @@ h2 {
 #summaryText {
   font-size: 14px;
   color: #333;
+  text-align: center;
 }
 
+/* ✅ Center bullet points */
 #bulletList {
-  padding-left: 20px;
+  list-style-position: inside; /* keep bullets aligned with text */
+  text-align: center;          /* center the text */
+  padding-left: 0;             /* remove extra indentation */
   font-size: 14px;
+  margin: 0;
 }
