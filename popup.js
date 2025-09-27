@@ -63,8 +63,7 @@ function updateSummaryDisplay(summaryData) {
     aiBadge.style.display = "inline-block";
   }
   
-  // Show success status
-  showStatusMessage("✅ AI Summary Generated Successfully!", "success");
+  // Success status removed - no message shown
   
   console.log("✅ Popup display updated with AI summary");
 }

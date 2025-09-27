@@ -62,11 +62,17 @@ h2 {
 
 /* ✅ Center bullet points */
 #bulletList {
-  list-style-position: inside; /* keep bullets aligned with text */
-  text-align: center;          /* center the text */
-  padding-left: 0;             /* remove extra indentation */
+  list-style-type: disc;
+  list-style-position: outside;
+  text-align: left;
+  padding-left: 20px;
   font-size: 14px;
   margin: 0;
+}
+
+#bulletList li {
+  margin-bottom: 6px;
+  padding-left: 4px;
 }
 
 /* Animation for when new summary is received */
@@ -117,9 +123,10 @@ h2 {
 }
 
 .bullet-list {
-  list-style-position: inside;
+  list-style-type: disc;
+  list-style-position: outside;
   text-align: left;
-  padding-left: 0;
+  padding-left: 20px;
   font-size: 14px;
   margin: 0;
 }
@@ -131,11 +138,8 @@ h2 {
 }
 
 .bullet-list li::before {
-  content: "•";
-  color: #4b0082;
-  font-weight: bold;
-  position: absolute;
-  left: 0;
+  content: "";
+  display: none;
 }
 
 /* Loading spinner */
