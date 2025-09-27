@@ -5,7 +5,7 @@
   "manifest_version": 3,
 
   "action": {
-    "default_popup": "extension/popup/popup.html"
+    "default_popup": "popup.html"
   },
 
   "content_scripts": [
