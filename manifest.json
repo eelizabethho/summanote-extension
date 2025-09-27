@@ -6,20 +6,14 @@
   "action": {
     "default_popup": "popup.html"
   },
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["extension/content/content.js"],
-      "run_at": "document_end"
-    }
-  ],
   "background": {
-    "service_worker": "extension/background/background.js"
+    "service_worker": "background.js"
   },
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "offscreen"
   ],
   "host_permissions": [
     "https://api.openai.com/*",
