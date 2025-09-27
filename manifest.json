@@ -1,0 +1,9 @@
+{
+  "name": "Hackathon Extension",
+  "description": "Base extension for our hackathon project",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "hello.html"
+  }
+}
