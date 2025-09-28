@@ -39,6 +39,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         
         return true; // Keep connection open for async response
     }
+    
+    // Handle TTS requests from popup
+    if (request.action === "speakText" && request.text) {
+        console.log("🔊 TTS request received:", request.text.substring(0, 50) + "...");
+        getAndPlayAudio(request.text);
+        return true;
+    }
+    
+    // Handle summary updates
+    if (request.action === "updateSummary") {
+        console.log("📝 Received summary update:", request);
+        // Store the summary data for the popup
+        chrome.storage.local.set({
+            currentSummary: {
+                summary: request.summary,
+                bulletPoints: request.bulletPoints || []
+            }
+        });
+        console.log("💾 Summary data stored for popup");
+        return true;
+    }
 });
 
 // OpenAI API summarization function
@@ -167,4 +188,93 @@ function createFallbackSummary(text) {
         summary: `Summary: ${summary}`,
         bulletPoints: bulletPoints
     };
+}
+
+// TTS Functions for ElevenLabs API
+async function getAndPlayAudio(text) {
+    const apiKey = "0718aab5eaa5d81fa381e034c6d28876f1def05e69c6e72d3e051fbebf79ebb0";
+    const voiceId = "21m00Tcm4TlvDq8ikWAM"; // Voice: "Rachel"
+
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`;
+
+    const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'xi-api-key': apiKey },
+        body: JSON.stringify({
+            text: text,
+            model_id: "eleven_multilingual_v2",
+            voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        }),
+    };
+
+    try {
+        console.log("🔊 Making ElevenLabs API request...");
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`ElevenLabs API request failed with status ${response.status}`);
+        }
+        
+        const audioBlob = await response.blob();
+        console.log("🎵 Audio blob received, size:", audioBlob.size);
+        await playAudioOffscreen(audioBlob);
+
+    } catch (error) {
+        console.error("❌ Error with ElevenLabs API:", error);
+        // Fallback to browser TTS
+        fallbackTTS(text);
+    }
+}
+
+// Fallback to browser TTS if ElevenLabs fails
+function fallbackTTS(text) {
+    console.log("🔄 Using browser fallback TTS");
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        speechSynthesis.speak(utterance);
+    }
+}
+
+// This function creates and uses an offscreen document to play audio
+async function playAudioOffscreen(audioBlob) {
+    try {
+        // Check if offscreen document already exists
+        if (await chrome.offscreen.hasDocument()) {
+            console.log("📄 Offscreen document exists, sending audio data");
+            // Convert blob to array buffer for transfer
+            const arrayBuffer = await audioBlob.arrayBuffer();
+            chrome.runtime.sendMessage({ 
+                target: 'offscreen', 
+                data: { 
+                    action: 'play', 
+                    audioData: Array.from(new Uint8Array(arrayBuffer)),
+                    mimeType: audioBlob.type
+                } 
+            });
+        } else {
+            console.log("📄 Creating offscreen document for audio playback");
+            await chrome.offscreen.createDocument({
+                url: 'offscreen.html',
+                reasons: ['AUDIO_PLAYBACK'],
+                justification: 'Playing text-to-speech audio from ElevenLabs',
+            });
+            
+            // Wait for offscreen document to be ready
+            setTimeout(async () => {
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                chrome.runtime.sendMessage({ 
+                    target: 'offscreen', 
+                    data: { 
+                        action: 'play', 
+                        audioData: Array.from(new Uint8Array(arrayBuffer)),
+                        mimeType: audioBlob.type
+                    } 
+                });
+            }, 500);
+        }
+    } catch (error) {
+        console.error("❌ Error with offscreen audio playback:", error);
+        fallbackTTS("Audio playback failed, using fallback");
+    }
 }
