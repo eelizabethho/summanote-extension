@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SummaNote TTS Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #4b0082;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #6a1b9a;
+        }
+    </style>
+</head>
+<body>
+    <h1>SummaNote TTS Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Test Text Selection</h2>
+        <p>Select this text to test the SummaNote extension. This is a sample paragraph that you can select and use to test the text-to-speech functionality. The extension should show a tooltip when you select text, and clicking the "Speak" button should use a female voice similar to Joanna from Amazon Polly.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Direct TTS Test</h2>
+        <p>Click the button below to test the browser's text-to-speech directly:</p>
+        <button onclick="testDirectTTS()">Test Direct TTS</button>
+        <button onclick="testVoiceSelection()">Test Voice Selection</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Available Voices</h2>
+        <div id="voices-list"></div>
+    </div>
+
+    <script>
+        function testDirectTTS() {
+            const text = "Hello! This is a test of the text-to-speech functionality. I should sound like a female voice similar to Joanna from Amazon Polly.";
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Try to find a female voice
+            const voices = speechSynthesis.getVoices();
+            const femaleVoice = voices.find(voice => 
+                voice.name.toLowerCase().includes('female') ||
+                voice.name.toLowerCase().includes('susan') ||
+                voice.name.toLowerCase().includes('zira') ||
+                voice.name.toLowerCase().includes('hazel') ||
+                voice.name.toLowerCase().includes('catherine')
+            );
+            
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+                console.log("Using voice:", femaleVoice.name);
+            }
+            
+            utterance.rate = 0.9;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        function testVoiceSelection() {
+            const voices = speechSynthesis.getVoices();
+            console.log("Available voices:", voices);
+            
+            const voicesList = document.getElementById('voices-list');
+            voicesList.innerHTML = '<h3>Available Voices:</h3>';
+            
+            voices.forEach((voice, index) => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <button onclick="speakWithVoice('${voice.name}')">
+                        ${voice.name} (${voice.lang}) - ${voice.gender || 'Unknown'}
+                    </button>
+                `;
+                voicesList.appendChild(div);
+            });
+        }
+        
+        function speakWithVoice(voiceName) {
+            const text = "Hello! This is a test using the selected voice.";
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = speechSynthesis.getVoices();
+            const selectedVoice = voices.find(voice => voice.name === voiceName);
+            
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                console.log("Using voice:", selectedVoice.name);
+            }
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        // Load voices when page loads
+        window.addEventListener('load', () => {
+            testVoiceSelection();
+        });
+    </script>
+</body>
+</html>

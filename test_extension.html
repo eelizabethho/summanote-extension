@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SummaNote Extension Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 SummaNote Extension Test Page</h1>
+    
+    <div class="test-section">
+        <h2>📝 Test Instructions:</h2>
+        <ol>
+            <li><strong>Load your extension</strong> in Chrome (chrome://extensions/ → Load unpacked)</li>
+            <li><strong>Select the text below</strong> (highlight it with your mouse)</li>
+            <li><strong>Click the "SummaNote" tooltip</strong> that appears</li>
+            <li><strong>Click "🔊 Speak"</strong> in the summary popup</li>
+            <li><strong>You should hear the text being read</strong> using browser TTS</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>📖 Test Text (Select this):</h2>
+        <p>
+            <span class="highlight">Artificial intelligence is transforming the way we work and live.</span> 
+            From voice assistants to autonomous vehicles, AI technology is becoming increasingly sophisticated. 
+            Machine learning algorithms can now process vast amounts of data to identify patterns and make predictions. 
+            This has applications in healthcare, finance, education, and many other fields. 
+            However, as AI becomes more powerful, we must also consider the ethical implications and ensure that these technologies are developed responsibly.
+        </p>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Debugging Tips:</h2>
+        <ul>
+            <li><strong>Check browser console</strong> (F12 → Console) for any errors</li>
+            <li><strong>Make sure extension is enabled</strong> in chrome://extensions/</li>
+            <li><strong>Try refreshing the page</strong> after loading the extension</li>
+            <li><strong>Check if background script is running</strong> in extension details</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Expected Behavior:</h2>
+        <ol>
+            <li>When you select text, a purple "SummaNote" tooltip should appear</li>
+            <li>Clicking the tooltip should show a summary popup</li>
+            <li>Clicking "🔊 Speak" should read the summary aloud</li>
+            <li>You should hear the text being spoken by your browser's TTS</li>
+        </ol>
+    </div>
+
+    <script>
+        // Add some debugging info
+        console.log("🧪 SummaNote Test Page Loaded");
+        console.log("📝 Select the highlighted text above to test the extension");
+        
+        // Check if extension is loaded
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            console.log("✅ Chrome extension API detected");
+        } else {
+            console.log("❌ Chrome extension API not detected");
+        }
+    </script>
+</body>
+</html>

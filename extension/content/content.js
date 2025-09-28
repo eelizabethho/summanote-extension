@@ -1,354 +1,394 @@
-console.log("SUMMANOTE: Content script loaded!");
+console.log("Content script loaded!");
 
-// Function to show "Open Extension" popup
-function showOpenExtensionPopup() {
-    // Remove any existing popup
-    const existingPopup = document.getElementById('summanote-open-popup');
-    if (existingPopup) {
-        existingPopup.remove();
-    }
+let selectedText = '';
 
-    const popup = document.createElement('div');
-    popup.id = 'summanote-open-popup';
-    popup.innerHTML = `
-        <div class="open-extension-card">
-            <div class="open-extension-content">
-                <h3>AI Processing...</h3>
-                <p>Your text is being summarized by AI. Click the SummaNote extension icon in your browser toolbar to view the results!</p>
-                <button id="summanote-close-popup" class="close-btn">Got it!</button>
-            </div>
+// get the selected text
+function getSelectedText() {
+    const selection = window.getSelection();
+    return selection.toString().trim();
+}
+
+// Function to show Vanesha's beautiful tooltip
+function showSummarizeOption(text) {
+    console.log("Showing summarize option for text:", text);
+    
+    // Remove any existing tooltip
+    removeTooltip();
+    
+    // Create Vanesha's beautiful tooltip with SummaNote branding
+    const tooltip = document.createElement('div');
+    tooltip.id = 'summarize-tooltip';
+    tooltip.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #4b0082 0%, #4f46e5 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold;">S</div>
+            <span style="font-weight: 600; color: #4b0082;">SummaNote</span>
         </div>
     `;
     
-    // Add CSS styles
-    const style = document.createElement('style');
-    style.textContent = `
-        #summanote-open-popup {
-            position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            z-index: 999999 !important;
-            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        }
-        
-        .open-extension-card {
-            background: #f9f9ff !important;
-            border-radius: 12px !important;
-            border: 2px solid #4b0082 !important;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
-            padding: 24px !important;
-            max-width: 300px !important;
-            text-align: center !important;
-        }
-        
-        .open-extension-content h3 {
-            color: #4b0082 !important;
-            font-size: 18px !important;
-            margin: 0 0 12px 0 !important;
-            font-weight: 600 !important;
-        }
-        
-        .open-extension-content p {
-            color: #333 !important;
-            font-size: 14px !important;
-            line-height: 1.5 !important;
-            margin: 0 0 16px 0 !important;
-        }
-        
-        .close-btn {
-            background: linear-gradient(135deg, #4b0082 0%, #4f46e5 100%) !important;
-            color: white !important;
-            border: none !important;
-            padding: 8px 16px !important;
-            border-radius: 6px !important;
-            cursor: pointer !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            transition: all 0.3s ease !important;
-        }
-        
-        .close-btn:hover {
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(75, 0, 130, 0.3) !important;
-        }
+    tooltip.style.cssText = `
+        position: absolute;
+        background: #f9f9ff;
+        color: #4b0082;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 14px;
+        cursor: pointer;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(75, 0, 130, 0.15);
+        border: 2px solid #4b0082;
+        transition: all 0.2s ease;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     `;
 
-    document.head.appendChild(style);
-    document.body.appendChild(popup);
-    console.log("SUMMANOTE: Open extension popup created");
-
-    // Add close functionality
-    const closeBtn = document.getElementById('summanote-close-popup');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            popup.remove();
-            console.log("SUMMANOTE: Open extension popup closed");
-        });
-    }
-
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (popup.parentNode) {
-            popup.remove();
-            console.log("SUMMANOTE: Open extension popup auto-closed");
-        }
-    }, 5000);
-
-    return popup;
-}
-
-// Function to show "Summarization Ready" popup
-function showSummarizationReadyPopup() {
-    // Remove any existing popup
-    const existingPopup = document.getElementById('summanote-ready-popup');
-    if (existingPopup) {
-        existingPopup.remove();
-    }
-    
-    const popup = document.createElement('div');
-    popup.id = 'summanote-ready-popup';
-    popup.innerHTML = `
-        <div class="ready-extension-card">
-            <div class="ready-extension-content">
-                <h3>Summarization Ready!</h3>
-                <p>Your AI summary is complete! Click the SummaNote extension icon in your browser toolbar to view the results.</p>
-                <button id="summanote-close-ready-popup" class="close-btn">Got it!</button>
-            </div>
-        </div>
-    `;
-    
-    // Add CSS styles for ready popup
-    const style = document.createElement('style');
-    style.textContent = `
-        #summanote-ready-popup {
-            position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            z-index: 999999 !important;
-            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-        }
-        
-        .ready-extension-card {
-            background: #f0f8ff !important;
-            border-radius: 12px !important;
-            border: 2px solid #4f46e5 !important;
-            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.3) !important;
-            padding: 24px !important;
-            max-width: 300px !important;
-            text-align: center !important;
-        }
-        
-        .ready-extension-content h3 {
-            color: #4f46e5 !important;
-            font-size: 18px !important;
-            margin: 0 0 12px 0 !important;
-            font-weight: 600 !important;
-        }
-        
-        .ready-extension-content p {
-            color: #333 !important;
-            font-size: 14px !important;
-            line-height: 1.5 !important;
-            margin: 0 0 16px 0 !important;
-        }
-        
-        .close-btn {
-            background: linear-gradient(135deg, #4f46e5 0%, #4b0082 100%) !important;
-            color: white !important;
-            border: none !important;
-            padding: 8px 16px !important;
-            border-radius: 6px !important;
-            cursor: pointer !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            transition: all 0.3s ease !important;
-        }
-        
-        .close-btn:hover {
-            transform: translateY(-1px) !important;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
-        }
-    `;
-
-    document.head.appendChild(style);
-    document.body.appendChild(popup);
-    console.log("SUMMANOTE: Summarization ready popup created");
-
-    // Add close functionality
-    const closeBtn = document.getElementById('summanote-close-ready-popup');
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function() {
-            popup.remove();
-            console.log("SUMMANOTE: Summarization ready popup closed");
-        });
-    }
-
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (popup.parentNode) {
-            popup.remove();
-            console.log("SUMMANOTE: Summarization ready popup auto-closed");
-        }
-    }, 5000);
-
-    return popup;
-}
-
-// Function to create and show the summarize button
-function createSummarizeButton(selection) {
-    console.log("SUMMANOTE: createSummarizeButton called");
-    
-    // Remove any existing button
-    const existingBtn = document.getElementById('summanote-summarize-btn');
-    if (existingBtn) {
-        console.log("SUMMANOTE: Removing existing button");
-        existingBtn.remove();
-    }
-
-    const button = document.createElement('button');
-    button.id = 'summanote-summarize-btn';
-    button.innerHTML = '📝 Summarize';
-    button.className = 'summanote-button';
-    
-    console.log("SUMMANOTE: Button created with ID:", button.id);
-
-    // Add CSS for the button
-    const style = document.createElement('style');
-    style.textContent = `
-        .summanote-button {
-            position: fixed !important;
-            background: linear-gradient(135deg, #4b0082 0%, #4f46e5 100%) !important;
-            color: white !important;
-            border: none !important;
-            padding: 8px 16px !important;
-            border-radius: 6px !important;
-            cursor: pointer !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            box-shadow: 0 4px 12px rgba(75, 0, 130, 0.3) !important;
-            z-index: 999998 !important;
-            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-            transition: all 0.3s ease !important;
-        }
-        
-        .summanote-button:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 16px rgba(75, 0, 130, 0.4) !important;
-        }
-    `;
-
-    document.head.appendChild(style);
-
-    // Position the button above the selection
-    const range = selection.getRangeAt(0);
+    // Position tooltip near selection
+    const range = window.getSelection().getRangeAt(0);
     const rect = range.getBoundingClientRect();
+    tooltip.style.left = rect.left + 'px';
+    tooltip.style.top = (rect.top - 50) + 'px';
     
-    const leftPos = rect.left + window.scrollX;
-    const topPos = rect.top + window.scrollY - 40;
-    
-    button.style.left = leftPos + 'px';
-    button.style.top = topPos + 'px';
-    
-    console.log("SUMMANOTE: Button positioned at:", leftPos, topPos);
-
-    document.body.appendChild(button);
-    console.log("SUMMANOTE: Button added to DOM");
-
-    // Add click handler
-    button.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log("SUMMANOTE: Summarize button clicked - event fired!");
-        
-        const selectedText = selection.toString().trim();
-        console.log("SUMMANOTE: Selected text length:", selectedText.length);
-        console.log("SUMMANOTE: Selected text preview:", selectedText.substring(0, 100) + "...");
-        
-        // Show immediate feedback
-        showOpenExtensionPopup();
-        
-        // Send the text to background script for processing
-        try {
-            chrome.runtime.sendMessage({
-                action: "summarize",
-                text: selectedText
-            }, function(response) {
-                console.log("SUMMANOTE: Received response from background:", response);
-                if (chrome.runtime.lastError) {
-                    console.error("SUMMANOTE: Error sending message:", chrome.runtime.lastError);
-                } else if (response && response.success) {
-                    console.log("SUMMANOTE: Summary completed successfully");
-                    showSummarizationReadyPopup();
-                } else {
-                    console.log("SUMMANOTE: Summary processing started");
-                }
-            });
-        } catch (error) {
-            console.error("SUMMANOTE: Error in sendMessage:", error);
-        }
-        
-        // Remove the button
-        button.remove();
+    // Add hover effects matching Vanesha's design
+    tooltip.addEventListener('mouseenter', () => {
+        tooltip.style.transform = 'translateY(-2px)';
+        tooltip.style.boxShadow = '0 8px 20px rgba(75, 0, 130, 0.25)';
+        tooltip.style.background = '#f0f0ff';
     });
-
-    // Auto-remove button after 3 seconds
-    setTimeout(() => {
-        if (button.parentNode) {
-            button.remove();
-        }
-    }, 3000);
-
-    return button;
+    
+    tooltip.addEventListener('mouseleave', () => {
+        tooltip.style.transform = 'translateY(0)';
+        tooltip.style.boxShadow = '0 4px 12px rgba(75, 0, 130, 0.15)';
+        tooltip.style.background = '#f9f9ff';
+    });
+    
+    document.body.appendChild(tooltip);
+    console.log("Tooltip added to page");
+    
+    tooltip.addEventListener('click', () => {
+        console.log("Tooltip clicked, sending text to summarizer");
+        sendTextToSummarizer(text);
+        removeTooltip();
+    });
 }
 
-// Listen for text selection with multiple events
-document.addEventListener('mouseup', function() {
-    setTimeout(() => {
-        const selection = window.getSelection();
-        const text = selection.toString().trim();
-        
-        console.log("SUMMANOTE: Mouse up event - text length:", text.length);
-        
-        if (text.length > 10) {
-            console.log("SUMMANOTE: Text selected:", text);
-            console.log("SUMMANOTE: Creating summarize button...");
-            createSummarizeButton(selection);
+// Function to remove tooltip
+function removeTooltip() {
+    const tooltip = document.getElementById('summarize-tooltip');
+    if (tooltip) {
+        tooltip.remove();
+    }
+}
+
+// Function to send text to background script for summarization
+function sendTextToSummarizer(text) {
+    console.log("Sending text to background script:", text);
+    chrome.runtime.sendMessage({
+        action: 'summarize',
+        text: text
+    }, (response) => {
+        console.log("Received response from background script:", response);
+        if (response && response.success) {
+            showSummary(response.summary, response.bulletPoints);
         } else {
-            console.log("SUMMANOTE: Text too short, not creating button");
+            showError(response.error || 'Failed to summarize text');
         }
-    }, 100); // Small delay to ensure selection is complete
-});
+    });
+}
 
-// Also listen for selection change
-document.addEventListener('selectionchange', function() {
-    setTimeout(() => {
-        const selection = window.getSelection();
-        const text = selection.toString().trim();
-        
-        if (text.length > 10) {
-            console.log("SUMMANOTE: Selection change detected - text length:", text.length);
-            createSummarizeButton(selection);
+// Function to display Vanesha's beautiful summary popup
+function showSummary(summary, bulletPoints) {
+    console.log("Showing summary:", summary);
+    
+    // Remove any existing popup
+    const existingPopup = document.getElementById('summary-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+    
+    const summaryPopup = document.createElement('div');
+    summaryPopup.id = 'summary-popup';
+    
+    // Create bullet points HTML matching Vanesha's design
+    const bulletPointsHTML = bulletPoints && bulletPoints.length > 0 
+        ? `<div style="margin-top: 20px;">
+             <h3 style="margin: 0 0 12px 0; color: #4b0082; font-size: 16px; font-weight: 600; text-align: center;">Bullet Points</h3>
+             <ul style="margin: 0; padding-left: 0; list-style-position: inside; text-align: center; font-size: 14px; color: #333;">
+               ${bulletPoints.map(point => `<li style="margin-bottom: 8px;">${point}</li>`).join('')}
+             </ul>
+           </div>`
+        : '';
+    
+    summaryPopup.innerHTML = `
+        <div style="background: #f9f9ff; border-radius: 16px; padding: 24px; max-width: 400px; box-shadow: 0 20px 60px rgba(75, 0, 130, 0.15); border: 2px solid #4b0082; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #4b0082 0%, #4f46e5 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold; margin-right: 12px;">S</div>
+                <h2 style="margin: 0; color: #4b0082; font-size: 20px; font-weight: 600;">SummaNote Summary</h2>
+            </div>
+            <div style="background: linear-gradient(135deg, #d6ecf3 0%, #c8b6ff 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 12px 0; color: #4b0082; font-size: 16px; font-weight: 600; text-align: center;">Summary</h3>
+                <p style="margin: 0; color: #333; line-height: 1.5; font-size: 14px; text-align: center;">${summary}</p>
+            </div>
+            ${bulletPointsHTML}
+            <div style="display: flex; gap: 8px; margin-top: 20px; justify-content: center;">
+                <button id="close-summary" style="background: #4f46e5; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">Close</button>
+                <button id="speak-summary" style="background: #4b0082; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;">🔊 Speak</button>
+            </div>
+        </div>
+    `;
+    
+    summaryPopup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10001;
+        background: rgba(0,0,0,0.5);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    document.body.appendChild(summaryPopup);
+    
+    // Close button functionality
+    document.getElementById('close-summary').addEventListener('click', () => {
+        summaryPopup.remove();
+    });
+    
+    // Speak button functionality (Amazon Polly text-to-speech)
+    document.getElementById('speak-summary').addEventListener('click', () => {
+        speakWithPolly(summary);
+    });
+    
+    // Close on background click
+    summaryPopup.addEventListener('click', (e) => {
+        if (e.target === summaryPopup) {
+            summaryPopup.remove();
         }
-    }, 100);
-});
+    });
+}
 
-// Clean up old buttons when selection is cleared
-document.addEventListener('selectionchange', function() {
-    setTimeout(() => {
-        const selection = window.getSelection();
-        const text = selection.toString().trim();
+// Function to get available voices (with fallback for loading)
+function getAvailableVoices() {
+    let voices = speechSynthesis.getVoices();
+    if (voices.length === 0) {
+        // Voices might not be loaded yet, wait a bit
+        return new Promise((resolve) => {
+            speechSynthesis.addEventListener('voiceschanged', () => {
+                resolve(speechSynthesis.getVoices());
+            }, { once: true });
+            // Fallback timeout
+            setTimeout(() => resolve(speechSynthesis.getVoices()), 100);
+        });
+    }
+    return Promise.resolve(voices);
+}
+
+// Function to speak with browser TTS using best available female voice
+async function speakWithBrowserTTS(text) {
+    try {
+        const voices = await getAvailableVoices();
+        console.log("Available voices:", voices.map(v => v.name));
         
-        if (text.length <= 10) {
-            // Remove button if selection is too short
-            const existingBtn = document.getElementById('summanote-summarize-btn');
-            if (existingBtn) {
-                console.log("SUMMANOTE: Removing button - selection too short");
-                existingBtn.remove();
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Try to find a female voice that sounds like Joanna
+        const joannaVoice = voices.find(voice => 
+            voice.name.toLowerCase().includes('zira') ||  // Microsoft Zira (female)
+            voice.name.toLowerCase().includes('joanna') || 
+            voice.name.toLowerCase().includes('female') ||
+            voice.name.toLowerCase().includes('susan') ||
+            voice.name.toLowerCase().includes('hazel') ||
+            voice.name.toLowerCase().includes('catherine')
+        );
+        
+        if (joannaVoice) {
+            utterance.voice = joannaVoice;
+            console.log("Using voice:", joannaVoice.name);
+        } else {
+            console.log("No specific female voice found, using default");
+        }
+        
+        // Set some properties for better quality
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        speechSynthesis.speak(utterance);
+    } catch (error) {
+        console.error("Error in speakWithBrowserTTS:", error);
+        // Fallback to basic TTS
+        const utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.speak(utterance);
+    }
+}
+
+// Function to speak text using Amazon Polly
+function speakWithPolly(text) {
+    console.log("Starting Polly synthesis for text:", text.substring(0, 100) + "...");
+    
+    // Show loading state
+    const speakButton = document.getElementById('speak-summary');
+    const originalText = speakButton.textContent;
+    speakButton.textContent = '🔄 Synthesizing...';
+    speakButton.disabled = true;
+    
+    // Send text to background script for Polly synthesis
+    chrome.runtime.sendMessage({
+        action: 'synthesize_speech',
+        text: text,
+        voice_id: 'Joanna' // You can make this configurable
+    }, (response) => {
+        console.log("Received response from background script:", response);
+        
+        // Reset button state
+        speakButton.textContent = originalText;
+        speakButton.disabled = false;
+        
+        if (response && response.success) {
+            console.log("SUCCESS: Playing real Amazon Polly audio");
+            console.log("Audio data length:", response.audio_data ? response.audio_data.length : "undefined");
+            console.log("Content type:", response.content_type);
+            console.log("Voice ID:", response.voice_id);
+            // Play the audio from Polly
+            playPollyAudio(response.audio_data, response.content_type);
+        } else {
+            console.error("Polly synthesis failed:", response.error);
+            // Check if it's demo mode
+            if (response && response.demo_mode && response.use_browser_tts) {
+                console.log("Demo mode: Using browser TTS with Joanna voice");
+                speakWithBrowserTTS(response.text || text);
+            } else {
+                // Fall back to browser TTS
+                console.log("Falling back to browser TTS");
+                speakWithBrowserTTS(text);
             }
         }
-    }, 100);
+    });
+}
+
+// Function to play Polly audio
+function playPollyAudio(audioData, contentType) {
+    try {
+        console.log("Playing Polly audio, data length:", audioData.length);
+        
+        // Convert base64 audio data to blob
+        const binaryString = atob(audioData);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        const blob = new Blob([bytes], { type: contentType });
+        const audioUrl = URL.createObjectURL(blob);
+        
+        console.log("Created audio URL:", audioUrl);
+        
+        // Create and play audio
+        const audio = new Audio(audioUrl);
+        
+        audio.addEventListener('loadstart', () => {
+            console.log("Audio loading started");
+        });
+        
+        audio.addEventListener('canplay', () => {
+            console.log("Audio can play");
+        });
+        
+        audio.addEventListener('play', () => {
+            console.log("Audio started playing");
+        });
+        
+        audio.addEventListener('ended', () => {
+            console.log("Audio finished playing");
+            URL.revokeObjectURL(audioUrl);
+        });
+        
+        audio.addEventListener('error', (e) => {
+            console.error("Audio error:", e);
+            URL.revokeObjectURL(audioUrl);
+        });
+        
+        audio.play().then(() => {
+            console.log("Polly audio playing successfully");
+        }).catch(error => {
+            console.error("Error playing Polly audio:", error);
+            URL.revokeObjectURL(audioUrl);
+        });
+        
+    } catch (error) {
+        console.error("Error processing Polly audio:", error);
+        // Fall back to browser TTS
+        console.log("Falling back to browser TTS due to Polly audio error");
+        const utterance = new SpeechSynthesisUtterance("Text to speech failed, using fallback");
+        speechSynthesis.speak(utterance);
+    }
+}
+
+// Function to show error message
+function showError(error) {
+    const errorPopup = document.createElement('div');
+    errorPopup.id = 'error-popup';
+    errorPopup.innerHTML = `
+        <div style="background: #f9f9ff; border-radius: 12px; padding: 20px; max-width: 300px; box-shadow: 0 8px 20px rgba(220, 38, 38, 0.15); border: 2px solid #dc2626; font-family: 'Inter', sans-serif;">
+            <h3 style="margin: 0 0 12px 0; color: #dc2626; font-size: 16px; font-weight: 600; text-align: center;">Error</h3>
+            <p style="margin: 0; color: #333; font-size: 14px; text-align: center;">${error}</p>
+            <button id="close-error" style="background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; margin-top: 12px; width: 100%;">Close</button>
+        </div>
+    `;
+    
+    errorPopup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10001;
+        background: rgba(0,0,0,0.5);
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    document.body.appendChild(errorPopup);
+    
+    document.getElementById('close-error').addEventListener('click', () => {
+        errorPopup.remove();
+    });
+}
+
+// Listen for text selection
+document.addEventListener('mouseup', function() {
+    const text = getSelectedText();
+    console.log("Text selected:", text, "Length:", text.length);
+    
+    if (text && text.length > 10) {
+        selectedText = text;
+        showSummarizeOption(text);
+    } else {
+        removeTooltip();
+    }
 });
 
-console.log("SUMMANOTE: Content script setup complete!");
+// Listen for clicks to remove tooltip when clicking elsewhere
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#summarize-tooltip') && !e.target.closest('#summary-popup') && !e.target.closest('#error-popup')) {
+        removeTooltip();
+    }
+});
+
+// Listen for escape key to close popups
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        removeTooltip();
+        const summaryPopup = document.getElementById('summary-popup');
+        const errorPopup = document.getElementById('error-popup');
+        if (summaryPopup) {
+            summaryPopup.remove();
+        }
+        if (errorPopup) {
+            errorPopup.remove();
+        }
+    }
+});

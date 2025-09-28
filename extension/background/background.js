@@ -1,36 +1,46 @@
-console.log("🚀 Background script loaded successfully!");
-
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    console.log("📨 Background script received message:", request);
+    console.log("Background script received message:", request);
     
     if (request.action === 'summarize') {
         console.log("Starting ChatGPT summarization for text:", request.text.substring(0, 100) + "...");
         
         // Use ChatGPT API for summarization
         summarizeWithChatGPT(request.text)
-            .then(result => {
-                console.log("Summary generated:", result);
-                
-                // Store the summary data for the popup to access
-                chrome.storage.local.set({
-                    'currentSummary': {
-                        summary: result.summary,
-                        bulletPoints: result.bulletPoints,
-                        timestamp: Date.now()
-                    }
-                }, function() {
-                    console.log("Summary data stored in chrome.storage.local");
-                });
-                
+            .then(summary => {
+                console.log("ChatGPT summary generated:", summary);
                 sendResponse({ 
                     success: true, 
-                    summary: result.summary,
-                    bulletPoints: result.bulletPoints
+                    summary: summary 
                 });
             })
             .catch(error => {
                 console.error("ChatGPT summarization failed:", error);
+                sendResponse({ 
+                    success: false, 
+                    error: error.message 
+                });
+            });
+        
+        return true; // Keep connection open for async response
+    }
+    
+    if (request.action === 'synthesize_speech') {
+        console.log("Starting Amazon Polly synthesis for text:", request.text.substring(0, 100) + "...");
+        
+        // Use Amazon Polly for text-to-speech
+        synthesizeWithPolly(request.text, request.voice_id)
+            .then(audioData => {
+                console.log("Polly synthesis completed");
+                sendResponse({ 
+                    success: true, 
+                    audio_data: audioData.audio_data,
+                    content_type: audioData.content_type,
+                    voice_id: audioData.voice_id
+                });
+            })
+            .catch(error => {
+                console.error("Polly synthesis failed:", error);
                 sendResponse({ 
                     success: false, 
                     error: error.message 
@@ -47,13 +57,11 @@ async function summarizeWithChatGPT(text) {
         console.log("Using OpenAI API for summarization...");
         
         // Use a hardcoded API key for the extension (you can replace this with your own)
-        const apiKey = "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"; // Replace with your actual OpenAI API key
+        const apiKey = "YOUR_OPENAI_API_KEY_HERE"; // Replace with your actual OpenAI API key
         
-        // TODO: Replace the line above with your actual API key like this:
-        // const apiKey = "sk-proj-your-actual-api-key-here";
-        
-        // If you have an API key, comment out the line below to use AI instead of fallback
-        // return createFallbackSummary(text);
+        // For testing, let's use fallback immediately
+        console.log("Using fallback summarization for testing");
+        return createFallbackSummary(text);
         
         // Call OpenAI API
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -67,7 +75,16 @@ async function summarizeWithChatGPT(text) {
                 messages: [
                     {
                         role: 'system',
-                        content: 'You are an expert summarizer. Create a simple, easy-to-understand summary that captures the main points and key information from the provided text. Make it concise and clear. Keep it under 150 words.'
+                        content: `You are a helpful summarizer. Write simple, easy-to-understand summaries.
+
+Format your response exactly like this:
+SUMMARY: [Write a simple paragraph in plain English]
+KEY POINTS:
+• [First main point]
+• [Second main point] 
+• [Third main point]
+
+Keep it simple. Use everyday words. Make it easy to read.`
                     },
                     {
                         role: 'user',
@@ -84,7 +101,6 @@ async function summarizeWithChatGPT(text) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error("OpenAI API Error response:", errorText);
-            console.error("API Key used:", apiKey.substring(0, 20) + "...");
             
             // If API fails, fall back to simple summarization
             console.log("API failed, using fallback summarization");
@@ -98,18 +114,7 @@ async function summarizeWithChatGPT(text) {
             throw new Error("Invalid OpenAI API response format");
         }
         
-        const aiSummary = data.choices[0].message.content;
-        
-        // Create bullet points from the summary
-        const sentences = aiSummary.split(/[.!?]+/)
-            .map(s => s.trim())
-            .filter(s => s.length > 10)
-            .slice(0, 3);
-        
-        return {
-            summary: `AI Summary: ${aiSummary}`,
-            bulletPoints: sentences
-        };
+        return `🤖 AI Summary: ${data.choices[0].message.content}`;
         
     } catch (error) {
         console.error("OpenAI API failed:", error.message);
@@ -156,15 +161,63 @@ function createFallbackSummary(text) {
         importantSentences.push(sentences[sentences.length - 1]);
     }
     
-    // Create summary and bullet points
+    // Create simple summary and bullet points
     const summary = importantSentences.slice(0, 3).join(' ');
-    const bulletPoints = importantSentences.slice(0, 3).map(sentence => {
-        const cleanSentence = sentence.trim().replace(/^[•\-\*]\s*/, '');
-        return cleanSentence.length > 100 ? cleanSentence.substring(0, 100) + '...' : cleanSentence;
-    });
     
-    return {
-        summary: `Summary: ${summary}`,
-        bulletPoints: bulletPoints
-    };
+    // Create simple bullet points (max 3)
+    const bullets = importantSentences.slice(0, 3).map(sentence => {
+        const cleanSentence = sentence.trim().replace(/^[•\-\*]\s*/, '');
+        return `• ${cleanSentence}`;
+    }).join('\n');
+    
+    return `SUMMARY: ${summary}\n\nKEY POINTS:\n${bullets}`;
+}
+
+// Amazon Polly synthesis function
+async function synthesizeWithPolly(text, voice_id = 'Joanna') {
+    try {
+        console.log("Using Amazon Polly for text-to-speech...");
+        
+        // Your Polly API endpoint URL (update this to your actual server)
+        const pollyApiUrl = 'http://localhost:5001/api/polly/synthesize';
+        
+        const response = await fetch(pollyApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: text,
+                voice_id: voice_id,
+                output_format: 'mp3'
+            })
+        });
+        
+        console.log("Polly API Response status:", response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Polly API Error response:", errorText);
+            throw new Error(`Polly API failed: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log("Polly API Response data:", data);
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Polly synthesis failed');
+        }
+        
+        return {
+            audio_data: data.audio_data,
+            content_type: data.content_type,
+            voice_id: data.voice_id
+        };
+        
+    } catch (error) {
+        console.error("Polly synthesis failed:", error.message);
+        // Fall back to browser TTS if Polly fails
+        console.log("Falling back to browser TTS");
+        throw new Error(`Polly synthesis failed: ${error.message}. Please check your AWS credentials and Polly service.`);
+    }
 }

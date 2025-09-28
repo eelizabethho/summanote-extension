@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug TTS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; }
+        button { padding: 10px 20px; margin: 10px; background: #4b0082; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .log { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Debug TTS Test</h1>
+    
+    <button onclick="testBasicTTS()">Test Basic TTS</button>
+    <button onclick="testVoiceSelection()">Test Voice Selection</button>
+    <button onclick="testExtensionTTS()">Test Extension TTS Logic</button>
+    <button onclick="clearLog()">Clear Log</button>
+    
+    <div id="log" class="log"></div>
+    <div id="voices" class="log"></div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('voices').innerHTML = '';
+        }
+        
+        function testBasicTTS() {
+            log('Testing basic TTS...');
+            const utterance = new SpeechSynthesisUtterance("Hello, this is a basic test of text to speech.");
+            
+            utterance.onstart = () => log('✅ Speech started');
+            utterance.onend = () => log('✅ Speech ended');
+            utterance.onerror = (e) => log('❌ Speech error: ' + e.error);
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        function testVoiceSelection() {
+            log('Getting available voices...');
+            const voices = speechSynthesis.getVoices();
+            log('Found ' + voices.length + ' voices');
+            
+            const voicesDiv = document.getElementById('voices');
+            voicesDiv.innerHTML = '<h3>Available Voices:</h3>';
+            
+            voices.forEach((voice, index) => {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <button onclick="speakWithVoice('${voice.name}')">
+                        ${voice.name} (${voice.lang}) - ${voice.gender || 'Unknown'}
+                    </button>
+                `;
+                voicesDiv.appendChild(div);
+            });
+            
+            // Try to find a female voice
+            const femaleVoice = voices.find(voice => 
+                voice.name.toLowerCase().includes('female') ||
+                voice.name.toLowerCase().includes('susan') ||
+                voice.name.toLowerCase().includes('zira') ||
+                voice.name.toLowerCase().includes('hazel') ||
+                voice.name.toLowerCase().includes('catherine') ||
+                voice.name.toLowerCase().includes('joanna')
+            );
+            
+            if (femaleVoice) {
+                log('Found female voice: ' + femaleVoice.name);
+            } else {
+                log('No specific female voice found');
+            }
+        }
+        
+        function speakWithVoice(voiceName) {
+            log('Speaking with voice: ' + voiceName);
+            const utterance = new SpeechSynthesisUtterance("Hello, this is a test using the selected voice.");
+            const voices = speechSynthesis.getVoices();
+            const selectedVoice = voices.find(voice => voice.name === voiceName);
+            
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                log('Using voice: ' + selectedVoice.name);
+            }
+            
+            utterance.onstart = () => log('✅ Speech started with ' + (utterance.voice ? utterance.voice.name : 'default voice'));
+            utterance.onend = () => log('✅ Speech ended');
+            utterance.onerror = (e) => log('❌ Speech error: ' + e.error);
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        async function testExtensionTTS() {
+            log('Testing extension TTS logic...');
+            
+            try {
+                // Simulate the extension's voice selection logic
+                const voices = await getAvailableVoices();
+                log('Available voices: ' + voices.map(v => v.name).join(', '));
+                
+                const utterance = new SpeechSynthesisUtterance("Hello, this is a test of the extension TTS logic.");
+                
+                const joannaVoice = voices.find(voice => 
+                    voice.name.toLowerCase().includes('joanna') || 
+                    voice.name.toLowerCase().includes('female') ||
+                    voice.name.toLowerCase().includes('susan') ||
+                    voice.name.toLowerCase().includes('zira') ||
+                    voice.name.toLowerCase().includes('hazel') ||
+                    voice.name.toLowerCase().includes('catherine')
+                );
+                
+                if (joannaVoice) {
+                    utterance.voice = joannaVoice;
+                    log('Using voice: ' + joannaVoice.name);
+                } else {
+                    log('No specific female voice found, using default');
+                }
+                
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                utterance.onstart = () => log('✅ Extension TTS started');
+                utterance.onend = () => log('✅ Extension TTS ended');
+                utterance.onerror = (e) => log('❌ Extension TTS error: ' + e.error);
+                
+                speechSynthesis.speak(utterance);
+            } catch (error) {
+                log('❌ Extension TTS error: ' + error.message);
+            }
+        }
+        
+        function getAvailableVoices() {
+            let voices = speechSynthesis.getVoices();
+            if (voices.length === 0) {
+                return new Promise((resolve) => {
+                    speechSynthesis.addEventListener('voiceschanged', () => {
+                        resolve(speechSynthesis.getVoices());
+                    }, { once: true });
+                    setTimeout(() => resolve(speechSynthesis.getVoices()), 100);
+                });
+            }
+            return Promise.resolve(voices);
+        }
+        
+        // Load voices when page loads
+        window.addEventListener('load', () => {
+            log('Page loaded, checking voices...');
+            testVoiceSelection();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SummaNote Simple Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-button {
+            background: #4b0082;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .test-button:hover {
+            background: #5a0a9a;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🧪 SummaNote Simple Test</h1>
+    
+    <div class="info status">
+        <strong>Instructions:</strong> Click the button below to test text-to-speech directly in your browser.
+    </div>
+    
+    <button class="test-button" onclick="testTTS()">🔊 Test Text-to-Speech</button>
+    
+    <div id="status"></div>
+    
+    <h2>📝 Test Text (Select this to test the extension):</h2>
+    <p style="background: #f0f0f0; padding: 15px; border-radius: 8px;">
+        <strong>Artificial intelligence is transforming the way we work and live.</strong> 
+        From voice assistants to autonomous vehicles, AI technology is becoming increasingly sophisticated. 
+        Machine learning algorithms can now process vast amounts of data to identify patterns and make predictions. 
+        This has applications in healthcare, finance, education, and many other fields.
+    </p>
+    
+    <div class="info status">
+        <strong>Extension Test:</strong> Select the text above and look for the SummaNote tooltip.
+    </div>
+
+    <script>
+        function testTTS() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = '<div class="info status">🔊 Testing text-to-speech...</div>';
+            
+            const testText = "Hello! This is a test of the SummaNote text-to-speech feature. The extension is working correctly.";
+            
+            const utterance = new SpeechSynthesisUtterance(testText);
+            
+            utterance.onstart = () => {
+                statusDiv.innerHTML = '<div class="success status">✅ Speech started! You should hear the text now.</div>';
+            };
+            
+            utterance.onend = () => {
+                statusDiv.innerHTML = '<div class="success status">✅ Speech completed! TTS is working correctly.</div>';
+            };
+            
+            utterance.onerror = (e) => {
+                statusDiv.innerHTML = '<div class="error status">❌ TTS Error: ' + e.error + '</div>';
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+        
+        // Check if extension is loaded
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            console.log("✅ Chrome extension API detected");
+        } else {
+            console.log("❌ Chrome extension API not detected");
+        }
+        
+        // Test speech synthesis availability
+        if (typeof speechSynthesis !== 'undefined') {
+            console.log("✅ Speech synthesis available");
+            document.getElementById('status').innerHTML = '<div class="success status">✅ Browser TTS is available and ready!</div>';
+        } else {
+            console.log("❌ Speech synthesis not available");
+            document.getElementById('status').innerHTML = '<div class="error status">❌ Speech synthesis not available in this browser</div>';
+        }
+    </script>
+</body>
+</html>

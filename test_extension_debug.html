@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extension Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 50px; }
+        .test-section { background: #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        button { padding: 10px 20px; margin: 10px; background: #4b0082; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .log { background: #000; color: #0f0; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>Extension Debug Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Text Selection</h2>
+        <p>Select this text to test the SummaNote extension. This is a sample paragraph that you can select and use to test the text-to-speech functionality. The extension should show a tooltip when you select text, and clicking the "Speak" button should use the real Amazon Polly Joanna voice.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Log</h2>
+        <div id="log" class="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+        
+        // Override console.log to capture all logs
+        const originalLog = console.log;
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            log(args.join(' '));
+        };
+        
+        // Override console.error to capture errors
+        const originalError = console.error;
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            log('ERROR: ' + args.join(' '));
+        };
+        
+        // Log when page loads
+        log('Extension debug test page loaded');
+        log('Select some text above to test the SummaNote extension');
+        
+        // Test if extension is loaded
+        if (typeof chrome !== 'undefined' && chrome.runtime) {
+            log('Chrome extension API is available');
+        } else {
+            log('WARNING: Chrome extension API not available');
+        }
+    </script>
+</body>
+</html>
