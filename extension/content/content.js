@@ -1,8 +1,4 @@
-console.log("SUMMANOTE: Content script loaded!");
-
-// Function to show "Open Extension" popup
 function showOpenExtensionPopup() {
-    // Remove any existing popup
     const existingPopup = document.getElementById('summanote-open-popup');
     if (existingPopup) {
         existingPopup.remove();
@@ -20,7 +16,6 @@ function showOpenExtensionPopup() {
         </div>
     `;
     
-    // Add CSS styles
     const style = document.createElement('style');
     style.textContent = `
         #summanote-open-popup {
@@ -76,31 +71,24 @@ function showOpenExtensionPopup() {
 
     document.head.appendChild(style);
     document.body.appendChild(popup);
-    console.log("SUMMANOTE: Open extension popup created");
 
-    // Add close functionality
     const closeBtn = document.getElementById('summanote-close-popup');
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
             popup.remove();
-            console.log("SUMMANOTE: Open extension popup closed");
         });
     }
 
-    // Auto-remove after 5 seconds
     setTimeout(() => {
         if (popup.parentNode) {
             popup.remove();
-            console.log("SUMMANOTE: Open extension popup auto-closed");
         }
     }, 5000);
 
     return popup;
 }
 
-// Function to show "Summarization Ready" popup
 function showSummarizationReadyPopup() {
-    // Remove any existing popup
     const existingPopup = document.getElementById('summanote-ready-popup');
     if (existingPopup) {
         existingPopup.remove();
@@ -118,7 +106,6 @@ function showSummarizationReadyPopup() {
         </div>
     `;
     
-    // Add CSS styles for ready popup
     const style = document.createElement('style');
     style.textContent = `
         #summanote-ready-popup {
@@ -174,47 +161,34 @@ function showSummarizationReadyPopup() {
 
     document.head.appendChild(style);
     document.body.appendChild(popup);
-    console.log("SUMMANOTE: Summarization ready popup created");
 
-    // Add close functionality
     const closeBtn = document.getElementById('summanote-close-ready-popup');
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
             popup.remove();
-            console.log("SUMMANOTE: Summarization ready popup closed");
         });
     }
 
-    // Auto-remove after 5 seconds
     setTimeout(() => {
         if (popup.parentNode) {
             popup.remove();
-            console.log("SUMMANOTE: Summarization ready popup auto-closed");
         }
     }, 5000);
 
     return popup;
 }
 
-// Function to create and show the summarize button
 function createSummarizeButton(selection) {
-    console.log("SUMMANOTE: createSummarizeButton called");
-    
-    // Remove any existing button
     const existingBtn = document.getElementById('summanote-summarize-btn');
     if (existingBtn) {
-        console.log("SUMMANOTE: Removing existing button");
         existingBtn.remove();
     }
 
     const button = document.createElement('button');
     button.id = 'summanote-summarize-btn';
-    button.innerHTML = '📝 Summarize';
+    button.innerHTML = 'Summarize';
     button.className = 'summanote-button';
-    
-    console.log("SUMMANOTE: Button created with ID:", button.id);
 
-    // Add CSS for the button
     const style = document.createElement('style');
     style.textContent = `
         .summanote-button {
@@ -241,7 +215,6 @@ function createSummarizeButton(selection) {
 
     document.head.appendChild(style);
 
-    // Position the button above the selection
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
     
@@ -250,50 +223,34 @@ function createSummarizeButton(selection) {
     
     button.style.left = leftPos + 'px';
     button.style.top = topPos + 'px';
-    
-    console.log("SUMMANOTE: Button positioned at:", leftPos, topPos);
 
     document.body.appendChild(button);
-    console.log("SUMMANOTE: Button added to DOM");
 
-    // Add click handler
     button.addEventListener('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
-        console.log("SUMMANOTE: Summarize button clicked - event fired!");
         
         const selectedText = selection.toString().trim();
-        console.log("SUMMANOTE: Selected text length:", selectedText.length);
-        console.log("SUMMANOTE: Selected text preview:", selectedText.substring(0, 100) + "...");
         
-        // Show immediate feedback
         showOpenExtensionPopup();
         
-        // Send the text to background script for processing
         try {
             chrome.runtime.sendMessage({
                 action: "summarize",
                 text: selectedText
             }, function(response) {
-                console.log("SUMMANOTE: Received response from background:", response);
                 if (chrome.runtime.lastError) {
-                    console.error("SUMMANOTE: Error sending message:", chrome.runtime.lastError);
                 } else if (response && response.success) {
-                    console.log("SUMMANOTE: Summary completed successfully");
                     showSummarizationReadyPopup();
                 } else {
-                    console.log("SUMMANOTE: Summary processing started");
                 }
             });
         } catch (error) {
-            console.error("SUMMANOTE: Error in sendMessage:", error);
         }
         
-        // Remove the button
         button.remove();
     });
 
-    // Auto-remove button after 3 seconds
     setTimeout(() => {
         if (button.parentNode) {
             button.remove();
@@ -303,52 +260,38 @@ function createSummarizeButton(selection) {
     return button;
 }
 
-// Listen for text selection with multiple events
 document.addEventListener('mouseup', function() {
     setTimeout(() => {
         const selection = window.getSelection();
         const text = selection.toString().trim();
         
-        console.log("SUMMANOTE: Mouse up event - text length:", text.length);
-        
         if (text.length > 10) {
-            console.log("SUMMANOTE: Text selected:", text);
-            console.log("SUMMANOTE: Creating summarize button...");
             createSummarizeButton(selection);
-        } else {
-            console.log("SUMMANOTE: Text too short, not creating button");
         }
-    }, 100); // Small delay to ensure selection is complete
+    }, 100);
 });
 
-// Also listen for selection change
 document.addEventListener('selectionchange', function() {
     setTimeout(() => {
         const selection = window.getSelection();
         const text = selection.toString().trim();
         
         if (text.length > 10) {
-            console.log("SUMMANOTE: Selection change detected - text length:", text.length);
             createSummarizeButton(selection);
         }
     }, 100);
 });
 
-// Clean up old buttons when selection is cleared
 document.addEventListener('selectionchange', function() {
     setTimeout(() => {
         const selection = window.getSelection();
         const text = selection.toString().trim();
         
         if (text.length <= 10) {
-            // Remove button if selection is too short
             const existingBtn = document.getElementById('summanote-summarize-btn');
             if (existingBtn) {
-                console.log("SUMMANOTE: Removing button - selection too short");
                 existingBtn.remove();
             }
         }
     }, 100);
 });
-
-console.log("SUMMANOTE: Content script setup complete!");

@@ -27,6 +27,7 @@
 
   "host_permissions": [
     "https://api.openai.com/*",
-    "https://api.elevenlabs.io/*"
+    "https://api.elevenlabs.io/*",
+    "http://localhost:5002/*"
   ]
 }

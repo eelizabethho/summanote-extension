@@ -9,17 +9,15 @@
   <div class="card">
     <div class="header">
       <img src="images/SummaNote_logo.png" alt="SummaNote Logo" class="logo">
-      <button id="ttsBtn">🔊 Speak</button>
+      <button id="pollyBtn">Speaker</button>
     </div>
 
     <div class="content">
-      <!-- Loading indicator -->
       <div id="loadingIndicator" class="loading" style="display: none;">
         <div class="spinner"></div>
         <p>AI is summarizing your text...</p>
       </div>
 
-      <!-- Summary section -->
       <section class="summary-header">
         <h2>
           <span id="summaryTitle">Summary</span>
@@ -30,7 +28,6 @@
         </div>
       </section>
 
-      <!-- Bullet points section -->
       <section>
         <h2>Key Points</h2>
         <div id="bulletContainer" class="bullet-container">
@@ -42,7 +39,6 @@
         </div>
       </section>
 
-      <!-- Status message -->
       <div id="statusMessage" class="status-message" style="display: none;">
         <p id="statusText"></p>
       </div>

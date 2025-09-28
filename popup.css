@@ -12,33 +12,34 @@ body {
   border-radius: 12px;
   border: 2px solid #4b0082;            
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 12px;         /* slightly less padding so content sits higher */
+  padding: 12px;
   width: 300px;
 }
 
-/* ✅ Header with logo left + button right */
 .header {
   display: flex;
-  justify-content: space-between; /* logo on left, button on right */
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
 
 .logo {
-  height: 100px;  /* bigger logo in corner */
+  height: 100px;
   width: auto;
 }
 
-#ttsBtn {
+#pollyBtn {
   background: #4f46e5;
   color: white;
   border: none;
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
 }
 
-#ttsBtn:hover {
+#pollyBtn:hover {
   background: #4338ca;
 }
 
@@ -60,7 +61,6 @@ h2 {
   text-align: center;
 }
 
-/* ✅ Center bullet points */
 #bulletList {
   list-style-type: disc;
   list-style-position: outside;

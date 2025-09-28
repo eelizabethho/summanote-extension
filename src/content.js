@@ -1,30 +1,25 @@
-// Simple text selection and summarize button
 document.addEventListener('mouseup', function() {
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
     
-    // Remove any existing button
     const existingButton = document.getElementById('summanote-button');
     if (existingButton) {
         existingButton.remove();
     }
     
-    // Show button if text is selected
     if (!selection.isCollapsed && selectedText.length > 0) {
         showSummarizeButton(selectedText);
     }
 });
 
 function showSummarizeButton(selectedText) {
-    // Get selection position
     const selection = window.getSelection();
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
     
-    // Create button
     const button = document.createElement('button');
     button.id = 'summanote-button';
-    button.textContent = '📝 Summarize';
+    button.textContent = 'Summarize';
     button.style.cssText = `
         position: fixed;
         top: ${rect.top - 40}px;
@@ -40,12 +35,10 @@ function showSummarizeButton(selectedText) {
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     `;
     
-    // Click handler
     button.addEventListener('click', function() {
-        button.textContent = '⏳ Loading...';
+        button.textContent = 'Loading...';
         button.disabled = true;
         
-        // Send to background script
         chrome.runtime.sendMessage({
             action: 'summarize',
             text: selectedText
@@ -61,7 +54,6 @@ function showSummarizeButton(selectedText) {
     
     document.body.appendChild(button);
     
-    // Auto-remove after 8 seconds
     setTimeout(() => {
         if (button.parentNode) {
             button.remove();
@@ -70,7 +62,6 @@ function showSummarizeButton(selectedText) {
 }
 
 function showResults(summary, bulletPoints) {
-    // Remove existing results
     const existing = document.getElementById('summanote-results');
     if (existing) existing.remove();
     
@@ -96,8 +87,8 @@ function showResults(summary, bulletPoints) {
     
     results.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin: 0; color: rgb(124, 49, 205); font-size: 16px;">📝 Summary</h3>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: #ff4444; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 12px;">✕</button>
+            <h3 style="margin: 0; color: rgb(124, 49, 205); font-size: 16px;">Summary</h3>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: #ff4444; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 12px;">×</button>
         </div>
         <div style="margin-bottom: 10px;">
             <strong>Summary:</strong><br>
